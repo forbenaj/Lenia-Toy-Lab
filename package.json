@@ -1,0 +1,11 @@
+{
+  "name": "lenia-toy-lab",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A focused, dependency-free Lenia sandbox for the browser.",
+  "scripts": {
+    "dev": "python -m http.server 5174 --bind 127.0.0.1",
+    "generate:thumbnails": "node scripts/generate-lifeform-images.js",
+    "check": "node --check src/i18n.js && node --check src/lenia-toy-lab.js && node --check src/music-player.js && node --check src/lenia-map-format.js && node --check src/lenia-catalog.js && node --check src/lifeform-collections.js && node --check src/lenia-themes.js && node --check src/range-sim-worker.js && node --check src/webgl-sim.js && node scripts/i18n.test.js && node scripts/project-smoke.test.js && node scripts/map-format.test.js && node scripts/catalog.test.js && node scripts/wrap-smoke.test.js"
+  }
+}

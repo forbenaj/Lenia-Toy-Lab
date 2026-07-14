@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="A focused, hands-on Lenia sandbox for painting, arranging, and evolving digital lifeforms."
+      data-i18n-content="meta.description"
+    />
+    <title>Lenia Toy Lab</title>
+    <link rel="icon" type="image/png" href="assets/favicon.png" />
+    <link rel="stylesheet" href="src/lenia-toy-lab.css" />
+    <script defer src="src/i18n.js"></script>
+    <script defer src="src/lenia-themes.js"></script>
+    <script defer src="src/lenia-lifeforms.js"></script>
+    <script defer src="src/lenia-repository-lifeforms.js"></script>
+    <script defer src="src/lenia-catalog.js"></script>
+    <script defer src="src/lifeform-collections.js"></script>
+    <script defer src="src/lenia-map-format.js"></script>
+    <script defer src="src/webgl-sim.js"></script>
+    <script defer src="src/music-player.js"></script>
+    <script defer src="src/lenia-toy-lab.js"></script>
+  </head>
+  <body>
+    <section id="fileProtocolNotice" class="file-protocol-notice" role="alert" hidden>
+      <h1 data-i18n="server.title">Lenia Toy Lab needs a local server</h1>
+      <p><span data-i18n="server.browserBefore">Browsers do not allow the simulator worker to run from a</span> <code>file://</code><span data-i18n="server.browserAfter"> page.</span></p>
+      <p><span data-i18n="server.commandBefore">In this folder, run</span> <code>npm run dev</code><span data-i18n="server.commandMiddle">, then open</span> <code>http://127.0.0.1:5174/</code>.</p>
+    </section>
+    <canvas id="glFieldCanvas" aria-hidden="true"></canvas>
+    <canvas id="fieldCanvas" aria-label="Interactive Lenia field" data-i18n-aria-label="canvas.label"></canvas>
+    <div id="placementWarnings" class="placement-warning-layer"></div>
+
+    <div class="left-panel-stack">
+    <aside class="float-panel config-panel" aria-label="Lab configuration" data-i18n-aria-label="lab.configuration">
+      <header class="brand-block">
+        <h1>Lenia <em>Toy Lab</em></h1>
+        <button id="languageToggleBtn" class="language-toggle" type="button" aria-label="Switch to Spanish" title="Switch to Spanish">EN</button>
+      </header>
+
+      <section class="config-section" aria-labelledby="playgroundHeading">
+        <div class="section-heading">
+          <h2 id="playgroundHeading" data-i18n="playground.title">Playground</h2>
+          <span id="backendBadge" class="status-badge">Auto</span>
+        </div>
+
+        <label class="range-control" for="speedSlider">
+          <span data-i18n="playground.speed">Speed</span>
+          <output id="speedValue" for="speedSlider">12</output>
+          <input id="speedSlider" type="range" min="1" max="60" step="1" value="12" />
+        </label>
+
+        <div class="control-block">
+          <span class="control-label" data-i18n="playground.fieldSize">Field size</span>
+          <div class="size-inputs">
+            <label><span class="sr-only" data-i18n="playground.fieldWidth">Field width</span><input id="fieldWidthInput" type="number" min="32" max="1024" step="1" value="196" /></label>
+            <span aria-hidden="true">×</span>
+            <label><span class="sr-only" data-i18n="playground.fieldHeight">Field height</span><input id="fieldHeightInput" type="number" min="32" max="1024" step="1" value="128" /></label>
+          </div>
+        </div>
+
+        <label class="select-control" for="backendSelect">
+          <span data-i18n="playground.backend">Backend</span>
+          <select id="backendSelect">
+            <option value="auto" selected data-i18n="playground.auto">Auto</option>
+            <option value="webgl">WebGL</option>
+            <option value="cpu">CPU</option>
+          </select>
+        </label>
+
+        <div class="toggle-list" role="group" aria-label="Field display" data-i18n-aria-label="playground.display">
+          <label class="toggle-control" for="repeatFieldToggle">
+            <input id="repeatFieldToggle" type="checkbox" checked />
+            <span data-i18n="playground.repeatField">Repeat field</span>
+          </label>
+          <label class="toggle-control" for="showFieldBoundaryToggle">
+            <input id="showFieldBoundaryToggle" type="checkbox" />
+            <span data-i18n="playground.showBoundary">Show field boundary</span>
+          </label>
+        </div>
+
+        <div class="playground-file-actions" role="group" aria-label="Map and image files" data-i18n-aria-label="playground.files">
+          <button id="saveMapBtn" type="button" data-i18n="playground.saveMap">Save Map</button>
+          <button id="loadMapBtn" type="button" data-i18n="playground.loadMap">Load Map</button>
+          <button id="saveImageBtn" type="button" data-i18n="playground.saveImage">Save Image</button>
+          <button id="loadImageBtn" type="button" data-i18n="playground.loadImage">Load Image</button>
+        </div>
+        <input id="loadMapInput" class="sr-only" type="file" accept=".map,application/json" tabindex="-1" aria-hidden="true" />
+        <input id="loadImageInput" class="sr-only" type="file" accept="image/*" tabindex="-1" aria-hidden="true" />
+      </section>
+
+      <section class="config-section" aria-labelledby="fieldHeading">
+        <div class="section-heading">
+          <h2 id="fieldHeading" data-i18n="field.title">Field</h2>
+          <button id="resetFieldConfigBtn" class="quiet-button" type="button" data-i18n="field.reset">Reset</button>
+        </div>
+
+        <label class="range-control" for="radiusSlider">
+          <span data-i18n="field.kernelRadius">Kernel radius</span>
+          <output id="radiusValue" for="radiusSlider">13</output>
+          <input id="radiusSlider" type="range" min="1" max="128" step="1" value="13" />
+        </label>
+
+        <label class="range-control" for="alphaSlider">
+          <span data-i18n="field.kernelSharpness">Kernel sharpness</span>
+          <output id="alphaValue" for="alphaSlider">4.0</output>
+          <input id="alphaSlider" type="range" min="1" max="12" step="0.5" value="4" />
+        </label>
+
+        <label class="range-control" for="muSlider">
+          <span><span data-i18n="field.growthCenter">Growth center mu</span> <i>μ</i></span>
+          <output id="muValue" for="muSlider">0.150</output>
+          <input id="muSlider" type="range" min="0.010" max="0.550" step="0.001" value="0.150" />
+        </label>
+
+        <label class="range-control" for="sigmaSlider">
+          <span><span data-i18n="field.growthWidth">Growth width sigma</span> <i>σ</i></span>
+          <output id="sigmaValue" for="sigmaSlider">0.017</output>
+          <input id="sigmaSlider" type="range" min="0.001" max="0.150" step="0.001" value="0.017" />
+        </label>
+
+        <label class="range-control" for="dtSlider">
+          <span data-i18n="field.timeStep">Time step</span>
+          <output id="dtValue" for="dtSlider">0.100</output>
+          <input id="dtSlider" type="range" min="0.001" max="1.000" step="0.001" value="0.100" />
+        </label>
+      </section>
+
+    </aside>
+
+    <aside class="float-panel palette-panel" aria-labelledby="paletteHeading">
+      <section class="palette-section">
+        <div class="section-heading">
+          <h2 id="paletteHeading" data-i18n="theme.title">Theme</h2>
+          <button id="deletePaletteBtn" class="quiet-button danger" type="button" data-i18n="theme.delete" hidden>Delete</button>
+        </div>
+
+        <label class="select-control" for="paletteSelect">
+          <span data-i18n="theme.title">Theme</span>
+          <select id="paletteSelect"></select>
+        </label>
+
+        <h3 data-i18n="theme.simulationColors">Simulation colors</h3>
+        <div id="paletteColors" class="palette-colors" aria-label="Simulation colors" data-i18n-aria-label="theme.simulationColors">
+          <label><span class="sr-only" data-i18n="theme.simulationColor1">Simulation color 1</span><input id="color0" type="color" value="#62c936" /></label>
+          <label><span class="sr-only" data-i18n="theme.simulationColor2">Simulation color 2</span><input id="color1" type="color" value="#4ea12b" /></label>
+          <label><span class="sr-only" data-i18n="theme.simulationColor3">Simulation color 3</span><input id="color2" type="color" value="#3b7920" /></label>
+          <label><span class="sr-only" data-i18n="theme.simulationColor4">Simulation color 4</span><input id="color3" type="color" value="#275115" /></label>
+          <label><span class="sr-only" data-i18n="theme.simulationColor5">Simulation color 5</span><input id="color4" type="color" value="#62c936" /></label>
+        </div>
+
+        <h3 data-i18n="theme.interfaceColors">Interface colors</h3>
+        <div id="uiPaletteColors" class="ui-palette-colors" aria-label="Interface colors" data-i18n-aria-label="theme.interfaceColors">
+          <label for="uiColorBackground"><span data-i18n="theme.pageCanvas">Page / canvas</span><input id="uiColorBackground" type="color" /></label>
+          <label for="uiColorPanel"><span data-i18n="theme.panel">Panel</span><input id="uiColorPanel" type="color" /></label>
+          <label for="uiColorControl"><span data-i18n="theme.control">Control</span><input id="uiColorControl" type="color" /></label>
+          <label for="uiColorText"><span data-i18n="theme.fontColor">Font color</span><input id="uiColorText" type="color" /></label>
+          <label for="uiColorMuted"><span data-i18n="theme.mutedFont">Muted font</span><input id="uiColorMuted" type="color" /></label>
+          <label for="uiColorBorder"><span data-i18n="theme.border">Border</span><input id="uiColorBorder" type="color" /></label>
+          <label for="uiColorAccent"><span data-i18n="theme.accent">Accent</span><input id="uiColorAccent" type="color" /></label>
+        </div>
+
+        <label class="select-control" for="uiFontSelect">
+          <span data-i18n="theme.fontFamily">Font family</span>
+          <select id="uiFontSelect">
+            <option value="arial">Arial</option>
+            <option value="system" data-i18n="theme.systemUi">System UI</option>
+            <option value="verdana">Verdana</option>
+            <option value="georgia">Georgia</option>
+            <option value="monospace" data-i18n="theme.monospace">Monospace</option>
+          </select>
+        </label>
+
+        <div class="save-palette-row">
+          <label class="sr-only" for="paletteNameInput" data-i18n="theme.customName">Custom theme name</label>
+          <input id="paletteNameInput" type="text" maxlength="32" placeholder="My theme" data-i18n-placeholder="theme.namePlaceholder" />
+          <button id="savePaletteBtn" type="button" data-i18n="theme.saveAsNew">Save as new</button>
+        </div>
+      </section>
+    </aside>
+    </div>
+
+    <section class="float-panel time-panel" aria-label="Time controls" data-i18n-aria-label="time.controls">
+      <div class="time-readout">
+        <span id="stateLabel" data-i18n="state.running">Running</span>
+        <strong id="timeLabel">t 0.0</strong>
+      </div>
+      <div class="transport-row">
+        <button id="runBtn" class="transport-button primary" type="button" aria-label="Pause (Spacebar)" title="Pause (Spacebar)" data-i18n-aria-label="transport.pause" data-i18n-title="transport.pause"><img id="runIcon" src="assets/ui/pause.png" alt="" aria-hidden="true" /></button>
+        <button id="stepBtn" class="transport-button" type="button" aria-label="Step once (S)" title="Step once (S)" data-i18n-aria-label="transport.step" data-i18n-title="transport.step"><img src="assets/ui/step.png" alt="" aria-hidden="true" /></button>
+        <button id="clearBtn" class="transport-button" type="button" aria-label="Clear field (C)" title="Clear field (C)" data-i18n-aria-label="transport.clear" data-i18n-title="transport.clear"><img src="assets/ui/clear.png" alt="" aria-hidden="true" /></button>
+        <button id="randomBtn" class="transport-button" type="button" aria-label="Randomize field (R)" title="Randomize field (R)" data-i18n-aria-label="transport.randomize" data-i18n-title="transport.randomize"><img src="assets/ui/random.png" alt="" aria-hidden="true" /></button>
+      </div>
+    </section>
+
+    <aside class="right-panel-stack">
+      <section class="float-panel tools-panel" aria-labelledby="toolsHeading">
+        <div class="section-heading">
+          <h2 id="toolsHeading" data-i18n="tools.title">Tools</h2>
+        </div>
+        <div class="tool-grid" role="group" aria-label="Field tool" data-i18n-aria-label="tools.group">
+          <button id="brushToolBtn" class="tool-button" type="button" aria-pressed="false" title="Brush (B)" data-i18n-title="tools.brushShortcut"><img src="assets/ui/brush.png" alt="" aria-hidden="true" /><span data-i18n="tools.brush">Brush</span></button>
+          <button id="eraseToolBtn" class="tool-button" type="button" aria-pressed="false" title="Erase (E)" data-i18n-title="tools.eraseShortcut"><img src="assets/ui/erase.png" alt="" aria-hidden="true" /><span data-i18n="tools.erase">Erase</span></button>
+          <button id="formToolBtn" class="tool-button active" type="button" aria-pressed="true" title="Lifeform (L)" data-i18n-title="tools.lifeformShortcut"><img src="assets/ui/form.png" alt="" aria-hidden="true" /><span data-i18n="tools.lifeform">Lifeform</span></button>
+        </div>
+        <div id="brushControls" class="brush-controls" hidden>
+          <label class="range-control compact" for="brushSizeSlider">
+            <span data-i18n="tools.size">Size</span>
+            <output id="brushSizeValue" for="brushSizeSlider">3</output>
+            <input id="brushSizeSlider" type="range" min="1" max="48" step="1" value="3" />
+          </label>
+          <label class="range-control compact" for="brushPowerSlider">
+            <span data-i18n="tools.power">Power</span>
+            <output id="brushPowerValue" for="brushPowerSlider">0.30</output>
+            <input id="brushPowerSlider" type="range" min="0.05" max="1.00" step="0.05" value="0.30" />
+          </label>
+        </div>
+        <div id="toolFormSelection" class="tool-form-selection" aria-live="polite">
+          <img id="toolFormThumb" src="assets/ui/form.png" alt="" />
+          <div>
+            <span id="toolFormCode" class="form-code" data-i18n="tools.lifeform">Lifeform</span>
+            <strong id="toolFormName" data-i18n="tools.loadingLifeform">Loading lifeform…</strong>
+            <span id="toolFormRuleWarning" class="rule-warning" role="alert" hidden>
+              <span class="rule-warning-icon" aria-hidden="true">&#9888;</span>
+              <span data-i18n="rules.mismatchShort">Doesn't match the field rules.</span>
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <section id="libraryPanel" class="float-panel library-panel" aria-labelledby="libraryHeading">
+        <header class="library-header">
+          <div>
+            <h2 id="libraryHeading" data-i18n="library.title">Lifeforms</h2>
+          </div>
+          <button id="expandLibraryBtn" class="expand-button" type="button" aria-expanded="false" aria-controls="libraryPanel" data-i18n="library.expand">Expand</button>
+        </header>
+
+        <div class="library-filters">
+          <label class="search-control" for="formSearch">
+            <span class="sr-only" data-i18n="library.searchLabel">Search lifeforms</span>
+            <input id="formSearch" type="search" placeholder="Search by name or code" data-i18n-placeholder="library.searchPlaceholder" autocomplete="off" />
+          </label>
+          <div class="filter-row">
+            <label class="select-control" for="collectionSelect"><span data-i18n="library.collection">Collection</span><select id="collectionSelect"></select></label>
+            <label class="select-control" for="groupSelect"><span data-i18n="library.group">Group</span><select id="groupSelect"></select></label>
+            <label class="select-control" for="ruleFilterSelect">
+              <span data-i18n="library.rule">Rule</span>
+              <select id="ruleFilterSelect">
+                <option value="all" data-i18n="library.allRules">All rules</option>
+                <option value="continuous" data-i18n="library.continuous">Continuous</option>
+                <option value="discrete" data-i18n="library.discrete">Discrete</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div class="library-summary">
+          <span id="libraryCount">0 lifeforms</span>
+        </div>
+
+        <div id="selectedForm" class="selected-form" aria-live="polite" data-i18n="library.loading">Loading lifeforms…</div>
+        <div id="formList" class="form-list" role="listbox" aria-label="Lifeform catalog" data-i18n-aria-label="library.catalog"></div>
+      </section>
+
+      <section class="float-panel music-panel" aria-label="El Orbe Unicolado music player" data-i18n-aria-label="music.player">
+        <div id="musicTrackMarquee" class="music-track-marquee" title="Loading album" data-i18n-title="music.loadingTitle">
+          <span id="musicTrackName" data-i18n="music.loading">Loading album...</span>
+        </div>
+        <div class="music-transport" role="group" aria-label="Album playback controls" data-i18n-aria-label="music.controls">
+          <button id="musicPreviousBtn" class="music-control" type="button" aria-label="Previous song" title="Previous song" data-i18n-aria-label="music.previous" data-i18n-title="music.previous" disabled>
+            <img src="assets/ui/previous.png" alt="" aria-hidden="true" />
+          </button>
+          <button id="musicPlayBtn" class="music-control primary" type="button" aria-label="Play album" title="Play album" data-i18n-aria-label="music.play" data-i18n-title="music.play" disabled>
+            <img id="musicPlayIcon" src="assets/ui/play.png" alt="" aria-hidden="true" />
+          </button>
+          <button id="musicNextBtn" class="music-control" type="button" aria-label="Next song" title="Next song" data-i18n-aria-label="music.next" data-i18n-title="music.next" disabled>
+            <img src="assets/ui/next.png" alt="" aria-hidden="true" />
+          </button>
+        </div>
+        <div class="music-volume">
+          <button
+            id="musicVolumeBtn"
+            class="music-control"
+            type="button"
+            aria-label="Volume"
+            data-i18n-aria-label="music.volume"
+            aria-expanded="false"
+            aria-controls="musicVolumePopover"
+            title="Volume"
+            data-i18n-title="music.volume"
+          ><img src="assets/ui/volume.png" alt="" aria-hidden="true" /></button>
+          <div id="musicVolumePopover" class="music-volume-popover" hidden>
+            <label class="sr-only" for="musicVolumeSlider" data-i18n="music.albumVolume">Album volume</label>
+            <input id="musicVolumeSlider" class="music-volume-slider" type="range" min="0" max="100" step="1" value="50" aria-orientation="vertical" />
+          </div>
+        </div>
+        <a
+          class="music-control music-go"
+          href="https://speaces.bandcamp.com/album/el-orbe-unicolado"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Open El Orbe Unicolado on Bandcamp"
+          data-i18n-aria-label="music.openBandcamp"
+          title="Open album on Bandcamp"
+          data-i18n-title="music.openAlbum"
+        ><img src="assets/ui/go.png" alt="" aria-hidden="true" /></a>
+        <audio id="albumAudio" preload="auto"></audio>
+      </section>
+    </aside>
+
+    <section id="placementPanel" class="float-panel placement-panel" aria-label="Prepared lifeforms" data-i18n-aria-label="placements.prepared" hidden>
+      <div>
+        <strong><span id="placementCount">0</span> <span id="placementSummaryLabel">lifeforms prepared</span></strong>
+      </div>
+      <button id="cancelPlacementsBtn" class="button-with-icon" type="button"><img src="assets/ui/clear.png" alt="" aria-hidden="true" /><span data-i18n="placements.clear">Clear</span></button>
+      <button id="placeAllBtn" class="primary-action button-with-icon" type="button"><img src="assets/ui/place.png" alt="" aria-hidden="true" /><span data-i18n="placements.spawnAll">Spawn all</span></button>
+    </section>
+
+    <div id="activePlacementControls" class="active-placement-controls" role="group" aria-label="Selected prepared lifeform actions" data-i18n-aria-label="placements.actions" hidden>
+      <button id="loadPreparedRulesBtn" type="button" aria-label="Load selected prepared lifeform ruleset" title="Load ruleset" data-i18n-aria-label="placements.loadRules" data-i18n-title="placements.loadRulesTitle" hidden>
+        <img src="assets/ui/load.png" alt="" aria-hidden="true" />
+      </button>
+      <button id="placePreparedBtn" type="button" aria-label="Spawn selected prepared lifeform" title="Spawn" data-i18n-aria-label="placements.spawn" data-i18n-title="placements.spawnTitle">
+        <img src="assets/ui/place.png" alt="" aria-hidden="true" />
+      </button>
+      <button id="removePreparedBtn" type="button" aria-label="Remove selected prepared lifeform" title="Cancel" data-i18n-aria-label="placements.remove" data-i18n-title="placements.cancelTitle">
+        <img src="assets/ui/remove.png" alt="" aria-hidden="true" />
+      </button>
+    </div>
+
+    <div id="ruleChangeDialog" class="modal-backdrop" hidden>
+      <section
+        class="modal"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="ruleChangeTitle"
+        aria-describedby="ruleChangeMessage"
+      >
+        <h2 id="ruleChangeTitle" data-i18n="rules.changeTitle">Change Field Rules?</h2>
+        <p id="ruleChangeMessage" data-i18n="rules.changeWarning">Changing the field rules may destabilize or destroy the mass currently in the field.</p>
+        <label class="check-row" for="skipRuleChangeAlert">
+          <input id="skipRuleChangeAlert" type="checkbox" />
+          <span data-i18n="rules.skipWarning">Don't show again</span>
+        </label>
+        <div class="modal-actions">
+          <button id="cancelRuleChangeBtn" type="button" data-i18n="rules.cancel">Cancel</button>
+          <button id="confirmRuleChangeBtn" class="primary-action" type="button" data-i18n="rules.change">Change Rules</button>
+        </div>
+      </section>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  </body>
+</html>

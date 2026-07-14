@@ -1,0 +1,480 @@
+"use strict";
+
+((global) => {
+  const STORAGE_KEY = "leniaToyLab.language.v1";
+  const DEFAULT_LANGUAGE = "es";
+  const SUPPORTED_LANGUAGES = Object.freeze(["en", "es"]);
+
+  const translations = Object.freeze({
+    en: Object.freeze({
+      "meta.description": "A focused, hands-on Lenia sandbox for painting, arranging, and evolving digital lifeforms.",
+      "server.title": "Lenia Toy Lab needs a local server",
+      "server.browserBefore": "Browsers do not allow the simulator worker to run from a",
+      "server.browserAfter": " page.",
+      "server.commandBefore": "In this folder, run",
+      "server.commandMiddle": ", then open",
+      "canvas.label": "Interactive Lenia field",
+      "lab.configuration": "Lab configuration",
+      "language.switchToEnglish": "Switch to English",
+      "language.switchToSpanish": "Switch to Spanish",
+      "playground.title": "Playground",
+      "playground.speed": "Speed",
+      "playground.fieldSize": "Field size",
+      "playground.fieldWidth": "Field width",
+      "playground.fieldHeight": "Field height",
+      "playground.backend": "Backend",
+      "playground.auto": "Auto",
+      "playground.display": "Field display",
+      "playground.repeatField": "Repeat field",
+      "playground.showBoundary": "Show field boundary",
+      "playground.files": "Map and image files",
+      "playground.saveMap": "Save Map",
+      "playground.loadMap": "Load Map",
+      "playground.saveImage": "Save Image",
+      "playground.loadImage": "Load Image",
+      "field.title": "Field",
+      "field.reset": "Reset",
+      "field.kernelRadius": "Kernel radius",
+      "field.kernelSharpness": "Kernel sharpness",
+      "field.growthCenter": "Growth center mu",
+      "field.growthWidth": "Growth width sigma",
+      "field.timeStep": "Time step",
+      "theme.title": "Theme",
+      "theme.delete": "Delete",
+      "theme.simulationColors": "Simulation colors",
+      "theme.simulationColor": "Simulation color {number}",
+      "theme.simulationColor1": "Simulation color 1",
+      "theme.simulationColor2": "Simulation color 2",
+      "theme.simulationColor3": "Simulation color 3",
+      "theme.simulationColor4": "Simulation color 4",
+      "theme.simulationColor5": "Simulation color 5",
+      "theme.interfaceColors": "Interface colors",
+      "theme.pageCanvas": "Page / canvas",
+      "theme.panel": "Panel",
+      "theme.control": "Control",
+      "theme.fontColor": "Font color",
+      "theme.mutedFont": "Muted font",
+      "theme.border": "Border",
+      "theme.accent": "Accent",
+      "theme.fontFamily": "Font family",
+      "theme.systemUi": "System UI",
+      "theme.monospace": "Monospace",
+      "theme.customName": "Custom theme name",
+      "theme.namePlaceholder": "My theme",
+      "theme.saveAsNew": "Save as new",
+      "theme.builtIn": "Built in",
+      "theme.myThemes": "My themes",
+      "theme.Ambar": "Amber",
+      "theme.Neon Green": "Neon Green",
+      "theme.Neon Blue": "Neon Blue",
+      "theme.LCD Green": "LCD Green",
+      "theme.LCD Green 2": "LCD Green 2",
+      "theme.Heatmap": "Heatmap",
+      "theme.Monochrome": "Monochrome",
+      "time.controls": "Time controls",
+      "state.running": "Running",
+      "state.paused": "Paused",
+      "state.loading": "Loading",
+      "state.serverRequired": "Local server required",
+      "state.couldNotStart": "Could not start",
+      "transport.pause": "Pause (Spacebar)",
+      "transport.play": "Play (Spacebar)",
+      "transport.step": "Step once (S)",
+      "transport.clear": "Clear field (C)",
+      "transport.randomize": "Randomize field (R)",
+      "tools.title": "Tools",
+      "tools.group": "Field tool",
+      "tools.brush": "Brush",
+      "tools.brushShortcut": "Brush (B)",
+      "tools.erase": "Erase",
+      "tools.eraseShortcut": "Erase (E)",
+      "tools.lifeform": "Lifeform",
+      "tools.lifeformUpper": "LIFEFORM",
+      "tools.lifeformShortcut": "Lifeform (L)",
+      "tools.size": "Size",
+      "tools.power": "Power",
+      "tools.loadingLifeform": "Loading lifeform…",
+      "rules.mismatchShort": "Doesn't match the field rules.",
+      "rules.mismatch": "Doesn't match the field rules. May not survive.",
+      "rules.changeTitle": "Change Field Rules?",
+      "rules.changeWarning": "Changing the field rules may destabilize or destroy the mass currently in the field.",
+      "rules.skipWarning": "Don't show again",
+      "rules.change": "Change Rules",
+      "rules.cancel": "Cancel",
+      "rules.resetWarning": "Resetting changes the field rules. Existing mass may become unstable.",
+      "rules.loadingWarning": "Loading {name} changes the field rules. Existing mass may become unstable.",
+      "rules.loaded": "Loaded {name} field settings.",
+      "rules.settingsLoaded": "Field settings loaded",
+      "rules.loadField": "Load field",
+      "rules.fieldReset": "Field settings reset.",
+      "library.title": "Lifeforms",
+      "library.expand": "Expand",
+      "library.collapse": "Collapse",
+      "library.searchLabel": "Search lifeforms",
+      "library.searchPlaceholder": "Search by name or code",
+      "library.collection": "Collection",
+      "library.group": "Group",
+      "library.rule": "Rule",
+      "library.allRules": "All rules",
+      "library.continuous": "Continuous",
+      "library.discrete": "Discrete",
+      "library.catalog": "Lifeform catalog",
+      "library.loading": "Loading lifeforms…",
+      "library.all": "All",
+      "library.allGroups": "All groups",
+      "library.favorites": "Favorites ({count})",
+      "library.count.one": "{count} lifeform",
+      "library.count.other": "{count} lifeforms",
+      "library.emptyFavorites": "Favorite a lifeform with the star to keep it here.",
+      "library.emptyFilters": "No lifeforms match these filters.",
+      "library.noneSelected": "No lifeform is selected.",
+      "library.noSelection": "No lifeform selected",
+      "library.noneFound": "No lifeforms were found.",
+      "library.selectFirst": "Select a lifeform from the catalog first.",
+      "library.addFavorite": "Add {name} to favorites",
+      "library.removeFavorite": "Remove {name} from favorites",
+      "library.strict": "Strictly compatible",
+      "library.set": "Set {number}",
+      "library.unclassified": "Unclassified",
+      "library.sourceBundled": "Bundled Lenia",
+      "library.sourceRepository": "Lenia repository",
+      "music.player": "El Orbe Unicolado music player",
+      "music.loading": "Loading album...",
+      "music.loadingTitle": "Loading album",
+      "music.controls": "Album playback controls",
+      "music.previous": "Previous song",
+      "music.play": "Play album",
+      "music.pause": "Pause album",
+      "music.next": "Next song",
+      "music.volume": "Volume",
+      "music.albumVolume": "Album volume",
+      "music.openBandcamp": "Open El Orbe Unicolado on Bandcamp",
+      "music.openAlbum": "Open album on Bandcamp",
+      "music.loadError": "Couldn't load tracks",
+      "music.unknownTrack": "Unknown track",
+      "placements.prepared": "Prepared lifeforms",
+      "placements.summary.one": "lifeform prepared",
+      "placements.summary.other": "lifeforms prepared",
+      "placements.clear": "Clear",
+      "placements.spawnAll": "Spawn all",
+      "placements.actions": "Selected prepared lifeform actions",
+      "placements.loadRules": "Load selected prepared lifeform ruleset",
+      "placements.loadRulesTitle": "Load ruleset",
+      "placements.spawn": "Spawn selected prepared lifeform",
+      "placements.spawnTitle": "Spawn",
+      "placements.remove": "Remove selected prepared lifeform",
+      "placements.cancelTitle": "Cancel",
+      "placements.removed": "Prepared lifeform removed.",
+      "placements.spawned.one": "{count} lifeform spawned.",
+      "placements.spawned.other": "{count} lifeforms spawned.",
+      "backend.autoSelected": "Auto selected {backend}",
+      "backend.using": "Using {backend}",
+      "backend.webglFallback": "WebGL is unavailable here. Using the CPU backend instead.",
+      "backend.failed": "{backend} failed. Preserving the field while switching backends.",
+      "map.saved": "Map saved.",
+      "map.name": "Lenia Toy Lab Map",
+      "map.saveError": "The map could not be saved.",
+      "map.notReady": "The field is not ready to save.",
+      "map.dimensions": "Map dimensions must be between {min} and {max}.",
+      "map.noData": "The map does not contain field data.",
+      "map.invalid": "This is not a Lenia map.",
+      "map.newerVersion": "This map uses a newer format version.",
+      "map.loaded": "Loaded {name} ({width} × {height}).",
+      "map.loadError": "That map could not be loaded.",
+      "image.saved": "Image saved.",
+      "image.saveError": "The image could not be saved.",
+      "image.noData": "The field does not contain image data.",
+      "image.choose": "Choose an image file to load.",
+      "image.dimensions": "Image dimensions must be between {min} and {max} pixels.",
+      "image.loaded": "Loaded {name} ({width} × {height}).",
+      "image.loadError": "That image could not be loaded.",
+      "theme.nameRequired": "Give your theme a name first.",
+      "theme.builtInName": "That name belongs to a built-in theme.",
+      "theme.saved": "Saved “{name}”.",
+      "theme.deleted": "Deleted “{name}”.",
+      "app.startError": "Lenia Toy Lab could not start. Check the browser console for details.",
+    }),
+    es: Object.freeze({
+      "meta.description": "Un mini-laboratorio de Lenia para pintar, organizar y evolucionar organismos digitales.",
+      "server.title": "Lenia Toy Lab necesita un servidor local",
+      "server.browserBefore": "Los navegadores no permiten ejecutar el proceso del simulador desde una página",
+      "server.browserAfter": ".",
+      "server.commandBefore": "En esta carpeta, ejecuta",
+      "server.commandMiddle": " y luego abre",
+      "canvas.label": "Campo interactivo de Lenia",
+      "lab.configuration": "Configuración del laboratorio",
+      "language.switchToEnglish": "Cambiar a inglés",
+      "language.switchToSpanish": "Cambiar a español",
+      "playground.title": "Playground",
+      "playground.speed": "Velocidad",
+      "playground.fieldSize": "Tamaño del campo",
+      "playground.fieldWidth": "Ancho del campo",
+      "playground.fieldHeight": "Alto del campo",
+      "playground.backend": "Motor",
+      "playground.auto": "Auto",
+      "playground.display": "Visualización del campo",
+      "playground.repeatField": "Repetir campo",
+      "playground.showBoundary": "Mostrar límite del campo",
+      "playground.files": "Archivos de mapas e imágenes",
+      "playground.saveMap": "Guardar mapa",
+      "playground.loadMap": "Cargar mapa",
+      "playground.saveImage": "Guardar imagen",
+      "playground.loadImage": "Cargar imagen",
+      "field.title": "Campo",
+      "field.reset": "Restablecer",
+      "field.kernelRadius": "Radio del núcleo",
+      "field.kernelSharpness": "Precisión del núcleo",
+      "field.growthCenter": "Centro de crecimiento mu",
+      "field.growthWidth": "Amplitud de crecimiento sigma",
+      "field.timeStep": "Time step",
+      "theme.title": "Tema",
+      "theme.delete": "Eliminar",
+      "theme.simulationColors": "Colores de la simulación",
+      "theme.simulationColor": "Color de simulación {number}",
+      "theme.simulationColor1": "Color de simulación 1",
+      "theme.simulationColor2": "Color de simulación 2",
+      "theme.simulationColor3": "Color de simulación 3",
+      "theme.simulationColor4": "Color de simulación 4",
+      "theme.simulationColor5": "Color de simulación 5",
+      "theme.interfaceColors": "Colores de la interfaz",
+      "theme.pageCanvas": "Página / lienzo",
+      "theme.panel": "Panel",
+      "theme.control": "Control",
+      "theme.fontColor": "Color de fuente",
+      "theme.mutedFont": "Fuente secundaria",
+      "theme.border": "Borde",
+      "theme.accent": "Acento",
+      "theme.fontFamily": "Familia tipográfica",
+      "theme.systemUi": "Interfaz del sistema",
+      "theme.monospace": "Monoespaciada",
+      "theme.customName": "Nombre del tema personalizado",
+      "theme.namePlaceholder": "Mi tema",
+      "theme.saveAsNew": "Guardar como nuevo",
+      "theme.builtIn": "Incluidos",
+      "theme.myThemes": "Mis temas",
+      "theme.Ambar": "Ámbar",
+      "theme.Neon Green": "Verde neón",
+      "theme.Neon Blue": "Azul neón",
+      "theme.LCD Green": "Verde LCD",
+      "theme.LCD Green 2": "Verde LCD 2",
+      "theme.Heatmap": "Mapa de calor",
+      "theme.Monochrome": "Monocromo",
+      "time.controls": "Controles de tiempo",
+      "state.running": "En ejecución",
+      "state.paused": "En pausa",
+      "state.loading": "Cargando",
+      "state.serverRequired": "Se necesita un servidor local",
+      "state.couldNotStart": "No se pudo iniciar",
+      "transport.pause": "Pausar (barra espaciadora)",
+      "transport.play": "Reproducir (barra espaciadora)",
+      "transport.step": "Avanzar un paso (S)",
+      "transport.clear": "Limpiar campo (C)",
+      "transport.randomize": "Generar campo aleatorio (R)",
+      "tools.title": "Herramientas",
+      "tools.group": "Herramienta del campo",
+      "tools.brush": "Pincel",
+      "tools.brushShortcut": "Pincel (B)",
+      "tools.erase": "Borrador",
+      "tools.eraseShortcut": "Borrador (E)",
+      "tools.lifeform": "Organismo",
+      "tools.lifeformUpper": "Organismo",
+      "tools.lifeformShortcut": "Organismo (L)",
+      "tools.size": "Tamaño",
+      "tools.power": "Potencia",
+      "tools.loadingLifeform": "Cargando organismo…",
+      "rules.mismatchShort": "No coincide con las reglas del campo.",
+      "rules.mismatch": "No coincide con las reglas del campo. Es posible que no sobreviva.",
+      "rules.changeTitle": "¿Cambiar las reglas del campo?",
+      "rules.changeWarning": "Cambiar las reglas del campo puede desestabilizar o destruir la masa que contiene.",
+      "rules.skipWarning": "No volver a mostrar",
+      "rules.change": "Cambiar reglas",
+      "rules.cancel": "Cancelar",
+      "rules.resetWarning": "Restablecer cambia las reglas del campo. La masa existente podría volverse inestable.",
+      "rules.loadingWarning": "Cargar {name} cambia las reglas del campo. La masa existente podría volverse inestable.",
+      "rules.loaded": "Se cargó la configuración de campo de {name}.",
+      "rules.settingsLoaded": "Configuración del campo cargada",
+      "rules.loadField": "Cargar campo",
+      "rules.fieldReset": "Se restableció la configuración del campo.",
+      "library.title": "Organismos",
+      "library.expand": "Expandir",
+      "library.collapse": "Contraer",
+      "library.searchLabel": "Buscar organismos",
+      "library.searchPlaceholder": "Buscar por nombre o código",
+      "library.collection": "Colección",
+      "library.group": "Grupo",
+      "library.rule": "Regla",
+      "library.allRules": "Todas las reglas",
+      "library.continuous": "Continuas",
+      "library.discrete": "Discretas",
+      "library.catalog": "Catálogo de organismos",
+      "library.loading": "Cargando organismos…",
+      "library.all": "Todas",
+      "library.allGroups": "Todos los grupos",
+      "library.favorites": "Favoritas ({count})",
+      "library.count.one": "{count} organismo",
+      "library.count.other": "{count} organismos",
+      "library.emptyFavorites": "Marca un organismo con la estrella para guardarlo aquí.",
+      "library.emptyFilters": "Ningún organismo coincide con estos filtros.",
+      "library.noneSelected": "No hay ningún organismo seleccionado.",
+      "library.noSelection": "Ningún organismo seleccionado",
+      "library.noneFound": "No se encontraron organismos.",
+      "library.selectFirst": "Primero selecciona un organismo del catálogo.",
+      "library.addFavorite": "Agregar {name} a favoritas",
+      "library.removeFavorite": "Quitar {name} de favoritas",
+      "library.strict": "Estrictamente compatibles",
+      "library.set": "Conjunto {number}",
+      "library.unclassified": "Sin clasificar",
+      "library.sourceBundled": "Lenia incluida",
+      "library.sourceRepository": "Repositorio de Lenia",
+      "music.player": "Reproductor de El Orbe Unicolado",
+      "music.loading": "Cargando álbum...",
+      "music.loadingTitle": "Cargando álbum",
+      "music.controls": "Controles de reproducción del álbum",
+      "music.previous": "Canción anterior",
+      "music.play": "Reproducir álbum",
+      "music.pause": "Pausar álbum",
+      "music.next": "Canción siguiente",
+      "music.volume": "Volumen",
+      "music.albumVolume": "Volumen del álbum",
+      "music.openBandcamp": "Abrir El Orbe Unicolado en Bandcamp",
+      "music.openAlbum": "Abrir álbum en Bandcamp",
+      "music.loadError": "No se pudieron cargar las canciones",
+      "music.unknownTrack": "Canción desconocida",
+      "placements.prepared": "Organismos preparados",
+      "placements.summary.one": "organismo preparado",
+      "placements.summary.other": "organismos preparados",
+      "placements.clear": "Limpiar",
+      "placements.spawnAll": "Generar todas",
+      "placements.actions": "Acciones del organismo preparado seleccionado",
+      "placements.loadRules": "Cargar las reglas del organismo preparado seleccionado",
+      "placements.loadRulesTitle": "Cargar reglas",
+      "placements.spawn": "Generar el organismo preparado seleccionado",
+      "placements.spawnTitle": "Generar",
+      "placements.remove": "Quitar el organismo preparado seleccionado",
+      "placements.cancelTitle": "Cancelar",
+      "placements.removed": "Se quitó el organismo preparado.",
+      "placements.spawned.one": "Se generó {count} organismo.",
+      "placements.spawned.other": "Se generaron {count} organismos.",
+      "backend.autoSelected": "Selección automática: {backend}",
+      "backend.using": "En uso: {backend}",
+      "backend.webglFallback": "WebGL no está disponible. Se usará el motor de CPU.",
+      "backend.failed": "Falló {backend}. Se conservará el campo mientras se cambia de motor.",
+      "map.saved": "Mapa guardado.",
+      "map.name": "Mapa de Lenia Toy Lab",
+      "map.saveError": "No se pudo guardar el mapa.",
+      "map.notReady": "El campo aún no está listo para guardarse.",
+      "map.dimensions": "Las dimensiones del mapa deben estar entre {min} y {max}.",
+      "map.noData": "El mapa no contiene datos de campo.",
+      "map.invalid": "Este no es un mapa de Lenia.",
+      "map.newerVersion": "Este mapa usa una versión de formato más reciente.",
+      "map.loaded": "Se cargó {name} ({width} × {height}).",
+      "map.loadError": "No se pudo cargar ese mapa.",
+      "image.saved": "Imagen guardada.",
+      "image.saveError": "No se pudo guardar la imagen.",
+      "image.noData": "El campo no contiene datos de imagen.",
+      "image.choose": "Elige un archivo de imagen para cargar.",
+      "image.dimensions": "Las dimensiones de la imagen deben estar entre {min} y {max} píxeles.",
+      "image.loaded": "Se cargó {name} ({width} × {height}).",
+      "image.loadError": "No se pudo cargar esa imagen.",
+      "theme.nameRequired": "Primero dale un nombre al tema.",
+      "theme.builtInName": "Ese nombre pertenece a un tema incluido.",
+      "theme.saved": "Se guardó “{name}”.",
+      "theme.deleted": "Se eliminó “{name}”.",
+      "app.startError": "Lenia Toy Lab no pudo iniciarse. Revisa la consola del navegador para obtener más detalles.",
+    }),
+  });
+
+  function normalizeLanguage(value) {
+    const code = String(value || "").trim().toLowerCase().split("-")[0];
+    return SUPPORTED_LANGUAGES.includes(code) ? code : null;
+  }
+
+  function readSavedLanguage() {
+    try {
+      return normalizeLanguage(localStorage.getItem(STORAGE_KEY));
+    } catch {
+      return null;
+    }
+  }
+
+  function detectLanguage() {
+    const saved = readSavedLanguage();
+    if (saved) return saved;
+    for (const candidate of navigator.languages || [navigator.language]) {
+      const language = normalizeLanguage(candidate);
+      if (language) return language;
+    }
+    return DEFAULT_LANGUAGE;
+  }
+
+  let language = detectLanguage();
+
+  function t(key, variables = {}) {
+    const template = translations[language]?.[key] ?? translations[DEFAULT_LANGUAGE]?.[key] ?? key;
+    return template.replace(/\{([a-zA-Z0-9_]+)\}/g, (match, name) =>
+      Object.hasOwn(variables, name) ? String(variables[name]) : match,
+    );
+  }
+
+  function plural(key, count, variables = {}) {
+    const category = new Intl.PluralRules(language).select(Number(count));
+    const localizedKey = Object.hasOwn(translations[language], `${key}.${category}`) ? `${key}.${category}` : `${key}.other`;
+    return t(localizedKey, { ...variables, count });
+  }
+
+  function apply(root = document) {
+    root.querySelectorAll("[data-i18n]").forEach((element) => {
+      element.textContent = t(element.dataset.i18n);
+    });
+    for (const [attribute, datasetName] of [
+      ["aria-label", "i18nAriaLabel"],
+      ["title", "i18nTitle"],
+      ["placeholder", "i18nPlaceholder"],
+      ["content", "i18nContent"],
+    ]) {
+      root.querySelectorAll(`[data-${datasetName.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)}]`).forEach((element) => {
+        element.setAttribute(attribute, t(element.dataset[datasetName]));
+      });
+    }
+  }
+
+  function syncLanguageButton() {
+    const button = document.querySelector("#languageToggleBtn");
+    if (!button) return;
+    const targetLanguage = language === "es" ? "en" : "es";
+    const label = targetLanguage === "es" ? t("language.switchToSpanish") : t("language.switchToEnglish");
+    button.textContent = language.toUpperCase();
+    button.setAttribute("aria-label", label);
+    button.title = label;
+  }
+
+  function setLanguage(nextLanguage, { persist = true, emit = true } = {}) {
+    const normalized = normalizeLanguage(nextLanguage) || DEFAULT_LANGUAGE;
+    const changed = normalized !== language;
+    language = normalized;
+    document.documentElement.lang = language;
+    if (persist) {
+      try {
+        localStorage.setItem(STORAGE_KEY, language);
+      } catch {
+        // The selected language remains active for this session.
+      }
+    }
+    apply();
+    syncLanguageButton();
+    if (changed && emit) global.dispatchEvent(new CustomEvent("lenia:languagechange", { detail: { language } }));
+  }
+
+  global.LeniaI18n = Object.freeze({
+    apply,
+    getLanguage: () => language,
+    plural,
+    setLanguage,
+    t,
+  });
+
+  setLanguage(language, { persist: false, emit: false });
+  document.querySelector("#languageToggleBtn")?.addEventListener("click", () => {
+    setLanguage(language === "es" ? "en" : "es");
+  });
+})(window);
