@@ -13,6 +13,7 @@ const themes = fs.readFileSync(path.join(root, "src", "lenia-themes.js"), "utf8"
 const collections = fs.readFileSync(path.join(root, "src", "lifeform-collections.js"), "utf8");
 const albumDirectory = path.join(root, "assets", "music", "speaces", "el-orbe-unicolado");
 const albumManifest = JSON.parse(fs.readFileSync(path.join(albumDirectory, "tracks.json"), "utf8"));
+const defaultMapPath = path.join(root, "assets", "maps", "default_0.map");
 
 for (const id of [
   "speedSlider",
@@ -180,6 +181,9 @@ for (const shortcut of ["Spacebar", "(S)", "(C)", "(R)", "Brush (B)", "Erase (E)
 }
 assert.match(script, /function saveMapFile/, "maps can be saved");
 assert.match(script, /function loadMapFile/, "maps can be loaded");
+assert.match(script, /DEFAULT_MAP_PATH\s*=\s*"assets\/maps\/default_0\.map"/, "default_0.map is the startup map");
+assert.match(script, /async function boot\([\s\S]*?await loadDefaultMap\(\)/, "boot loads the default map");
+assert.ok(fs.existsSync(defaultMapPath), "the startup map exists");
 assert.match(script, /function saveImageFile/, "field images can be saved");
 assert.match(script, /function loadImageFile/, "images can be loaded into the field");
 assert.match(html, /src="src\/lenia-map-format\.js"/, "the shared map codec loads in the browser");

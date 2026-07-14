@@ -104,6 +104,7 @@ const LEGACY_CUSTOM_PALETTES_KEY = "leniaToyLab.customPalettes.v1";
 const DISPLAY_SETTINGS_KEY = "leniaToyLab.displaySettings.v1";
 const FAVORITES_KEY = "leniaToyLab.favorites.v1";
 const SKIP_RULE_CHANGE_ALERT_KEY = "leniaToyLab.skipRuleChangeAlert.v1";
+const DEFAULT_MAP_PATH = "assets/maps/default_0.map";
 const DEFAULT_FORM_NAME = "Orbium unicaudatus";
 const DEFAULT_WORLD = { width: 196, height: 128 };
 const DEFAULT_FIT_ZOOM = 1.25;
@@ -1154,10 +1155,10 @@ function resetLoadedWorld(width, height, values, loadedTime = 0) {
   return snapshot;
 }
 
-async function loadMapFile(file) {
-  if (!file) return;
+async function loadMapSource(source, { announce = true } = {}) {
+  if (!source) return false;
   try {
-    const map = JSON.parse(await file.text());
+    const map = JSON.parse(await source.text());
     if (map.type && map.type !== window.LeniaMapFormat.TYPE) throw new Error(t("map.invalid"));
     if (Number(map.version || 1) > window.LeniaMapFormat.VERSION) throw new Error(t("map.newerVersion"));
     const { width, height } = validateMapDimensions(map);
@@ -1185,10 +1186,27 @@ async function loadMapFile(file) {
 
     const snapshot = resetLoadedWorld(width, height, values, map.configuration?.state?.simTime);
     await startBackend({ preserve: false, snapshotOverride: snapshot });
-    showToast(t("map.loaded", { name: file.name, width, height }));
+    if (announce) showToast(t("map.loaded", { name: source.name, width, height }));
+    return true;
   } catch (error) {
     console.error("Could not load map:", error);
-    showToast(error instanceof Error ? error.message : t("map.loadError"));
+    if (announce) showToast(error instanceof Error ? error.message : t("map.loadError"));
+    return false;
+  }
+}
+
+async function loadMapFile(file) {
+  return loadMapSource(file);
+}
+
+async function loadDefaultMap() {
+  try {
+    const response = await fetch(DEFAULT_MAP_PATH);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return loadMapSource({ name: DEFAULT_MAP_PATH, text: () => response.text() }, { announce: false });
+  } catch (error) {
+    console.error(`Could not fetch default map ${DEFAULT_MAP_PATH}:`, error);
+    return false;
   }
 }
 
@@ -2606,9 +2624,10 @@ async function boot() {
   syncRuleControls();
   syncLabels();
   setTool("form");
-  setRunning(DEFAULT_RUNNING);
   await loadCatalog();
-  await startBackend({ preserve: false });
+  const loadedDefaultMap = await loadDefaultMap();
+  if (!loadedDefaultMap) await startBackend({ preserve: false });
+  setRunning(DEFAULT_RUNNING);
   requestAnimationFrame(tick);
 }
 
