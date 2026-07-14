@@ -32,8 +32,41 @@
     <canvas id="fieldCanvas" aria-label="Interactive Lenia field" data-i18n-aria-label="canvas.label"></canvas>
     <div id="placementWarnings" class="placement-warning-layer"></div>
 
+    <section class="float-panel time-panel" aria-label="Time controls" data-i18n-aria-label="time.controls">
+      <div class="time-readout">
+        <span id="stateLabel" data-i18n="state.running">Running</span>
+        <strong id="timeLabel">t 0.0</strong>
+      </div>
+      <div class="transport-row">
+        <button id="runBtn" class="transport-button primary" type="button" aria-label="Pause (Spacebar)" title="Pause (Spacebar)" data-i18n-aria-label="transport.pause" data-i18n-title="transport.pause"><img id="runIcon" src="assets/ui/pause.png" alt="" aria-hidden="true" /></button>
+        <button id="stepBtn" class="transport-button" type="button" aria-label="Step once (S)" title="Step once (S)" data-i18n-aria-label="transport.step" data-i18n-title="transport.step"><img src="assets/ui/step.png" alt="" aria-hidden="true" /></button>
+        <button id="clearBtn" class="transport-button" type="button" aria-label="Clear field (C)" title="Clear field (C)" data-i18n-aria-label="transport.clear" data-i18n-title="transport.clear"><img src="assets/ui/clear.png" alt="" aria-hidden="true" /></button>
+        <button id="randomBtn" class="transport-button" type="button" aria-label="Randomize field (R)" title="Randomize field (R)" data-i18n-aria-label="transport.randomize" data-i18n-title="transport.randomize"><img src="assets/ui/random.png" alt="" aria-hidden="true" /></button>
+      </div>
+    </section>
+
+    <header class="mobile-site-header">
+      <h1>Lenia <span>Toy Lab</span></h1>
+    </header>
+
+    <nav class="mobile-panel-menu" aria-label="Lab panels" data-i18n-aria-label="mobile.panels">
+      <button type="button" data-mobile-panel-target="configPanel" aria-label="Lab configuration" data-i18n-aria-label="lab.configuration" aria-controls="configPanel" aria-expanded="false">
+        <img src="assets/ui/lab.png" alt="" aria-hidden="true" />
+      </button>
+      <button type="button" data-mobile-panel-target="palettePanel" aria-label="Theme" data-i18n-aria-label="theme.title" aria-controls="palettePanel" aria-expanded="false">
+        <img src="assets/ui/theme.png" alt="" aria-hidden="true" />
+      </button>
+      <button type="button" data-mobile-panel-target="toolsPanel" aria-label="Tools" data-i18n-aria-label="tools.title" aria-controls="toolsPanel" aria-expanded="false">
+        <img src="assets/ui/tools.png" alt="" aria-hidden="true" />
+      </button>
+      <button type="button" data-mobile-panel-target="libraryPanel" aria-label="Lifeforms" data-i18n-aria-label="library.title" aria-controls="libraryPanel" aria-expanded="false">
+        <img src="assets/ui/form.png" alt="" aria-hidden="true" />
+      </button>
+    </nav>
+
     <div class="left-panel-stack">
-    <aside class="float-panel config-panel" aria-label="Lab configuration" data-i18n-aria-label="lab.configuration">
+    <aside id="configPanel" class="float-panel config-panel mobile-control-panel mobile-collapsed" aria-label="Lab configuration" data-i18n-aria-label="lab.configuration">
+      <button class="mobile-panel-close" type="button" data-i18n-aria-label="mobile.close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
       <header class="brand-block">
         <h1>Lenia <em>Toy Lab</em></h1>
         <button id="languageToggleBtn" class="language-toggle" type="button" aria-label="Switch to Spanish" title="Switch to Spanish">EN</button>
@@ -138,7 +171,8 @@
 
     </aside>
 
-    <aside class="float-panel palette-panel" aria-labelledby="paletteHeading">
+    <aside id="palettePanel" class="float-panel palette-panel mobile-control-panel mobile-collapsed" aria-labelledby="paletteHeading">
+      <button class="mobile-panel-close" type="button" data-i18n-aria-label="mobile.close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
       <section class="palette-section">
         <div class="section-heading">
           <h2 id="paletteHeading" data-i18n="theme.title">Theme</h2>
@@ -190,21 +224,9 @@
     </aside>
     </div>
 
-    <section class="float-panel time-panel" aria-label="Time controls" data-i18n-aria-label="time.controls">
-      <div class="time-readout">
-        <span id="stateLabel" data-i18n="state.running">Running</span>
-        <strong id="timeLabel">t 0.0</strong>
-      </div>
-      <div class="transport-row">
-        <button id="runBtn" class="transport-button primary" type="button" aria-label="Pause (Spacebar)" title="Pause (Spacebar)" data-i18n-aria-label="transport.pause" data-i18n-title="transport.pause"><img id="runIcon" src="assets/ui/pause.png" alt="" aria-hidden="true" /></button>
-        <button id="stepBtn" class="transport-button" type="button" aria-label="Step once (S)" title="Step once (S)" data-i18n-aria-label="transport.step" data-i18n-title="transport.step"><img src="assets/ui/step.png" alt="" aria-hidden="true" /></button>
-        <button id="clearBtn" class="transport-button" type="button" aria-label="Clear field (C)" title="Clear field (C)" data-i18n-aria-label="transport.clear" data-i18n-title="transport.clear"><img src="assets/ui/clear.png" alt="" aria-hidden="true" /></button>
-        <button id="randomBtn" class="transport-button" type="button" aria-label="Randomize field (R)" title="Randomize field (R)" data-i18n-aria-label="transport.randomize" data-i18n-title="transport.randomize"><img src="assets/ui/random.png" alt="" aria-hidden="true" /></button>
-      </div>
-    </section>
-
     <aside class="right-panel-stack">
-      <section class="float-panel tools-panel" aria-labelledby="toolsHeading">
+      <section id="toolsPanel" class="float-panel tools-panel mobile-control-panel mobile-collapsed" aria-labelledby="toolsHeading">
+        <button class="mobile-panel-close" type="button" data-i18n-aria-label="mobile.close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         <div class="section-heading">
           <h2 id="toolsHeading" data-i18n="tools.title">Tools</h2>
         </div>
@@ -238,7 +260,8 @@
         </div>
       </section>
 
-      <section id="libraryPanel" class="float-panel library-panel" aria-labelledby="libraryHeading">
+      <section id="libraryPanel" class="float-panel library-panel mobile-control-panel mobile-collapsed" aria-labelledby="libraryHeading">
+        <button class="mobile-panel-close" type="button" data-i18n-aria-label="mobile.close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         <header class="library-header">
           <div>
             <h2 id="libraryHeading" data-i18n="library.title">Lifeforms</h2>
@@ -274,6 +297,7 @@
       </section>
 
       <section class="float-panel music-panel" aria-label="El Orbe Unicolado music player" data-i18n-aria-label="music.player">
+        <img class="music-player-icon" src="assets/ui/music.png" alt="" aria-hidden="true" />
         <div id="musicTrackMarquee" class="music-track-marquee" title="Loading album" data-i18n-title="music.loadingTitle">
           <span id="musicTrackName" data-i18n="music.loading">Loading album...</span>
         </div>

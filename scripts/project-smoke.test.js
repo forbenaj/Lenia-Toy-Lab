@@ -85,8 +85,18 @@ assert.match(script, /wrapAround:\s*true/, "the simulation wraps by default");
 assert.match(script, /addEventListener\("dblclick"/, "lifeforms support double-click configuration loading");
 assert.match(script, /preparedPlacements\.push/, "multiple prepared forms are supported");
 assert.match(script, /kind:\s*"move"/, "prepared forms can be moved");
+assert.match(
+  script,
+  /const index = addPreparedPlacement\(world\);[\s\S]*?kind: "move"[\s\S]*?offsetX: 0, offsetY: 0/,
+  "newly prepared forms can be dragged during the click that creates them",
+);
 assert.match(script, /canvas\.style\.cursor = "move"/, "moving uses a move cursor");
 assert.match(script, /hit\?\.kind === "rotate"\) canvas\.style\.cursor = "crosshair"/, "rotation handles use a rotation-appropriate fallback cursor");
+assert.match(
+  script,
+  /PREPARED_HANDLE_HIT_RADIUS\s*=\s*18[\s\S]*?Math\.hypot\(point\.x - corner\.x, point\.y - corner\.y\) <= PREPARED_HANDLE_HIT_RADIUS/,
+  "prepared-form handles have a generous hit target",
+);
 assert.match(script, /setTool\("form"\)/, "selecting a lifeform activates the Form tool");
 assert.match(script, /function placePreparedAt/, "a prepared form can be placed individually");
 assert.match(script, /function removePreparedAt/, "a prepared form can be removed individually");
@@ -160,7 +170,28 @@ assert.match(
   /function paintAt\(world\)[\s\S]*?x: modulo\(Math\.floor\(world\.x\), worldWidth\)[\s\S]*?y: modulo\(Math\.floor\(world\.y\), worldHeight\)/,
   "brush input on repeated tiles maps back into the wrapped field",
 );
-assert.match(script, /DEFAULT_FIT_ZOOM\s*=\s*1\.25/, "the field starts zoomed in");
+assert.match(script, /camera\.scale = clamp\(availableHeight \/ worldHeight/, "the starting camera fits the field vertically");
+for (const icon of ["lab", "theme", "tools", "form"]) {
+  assert.match(html, new RegExp(`data-mobile-panel-target=["'][^"']+["'][\\s\\S]*?assets/ui/${icon}\\.png`), `the mobile panel menu uses the ${icon} icon`);
+}
+assert.match(html, /class="music-player-icon" src="assets\/ui\/music\.png"/, "the music player starts with its bare music icon");
+assert.match(styles, /\.music-player-icon\s*{[^}]*width:\s*16px;[^}]*height:\s*14px;/, "the music icon keeps its native pixel-art size");
+assert.match(styles, /\.time-panel\s*{[\s\S]*?right:\s*max\(8px, env\(safe-area-inset-right\)\);[\s\S]*?max-width:\s*calc\(100vw - 82px\);/, "mobile time controls reserve room for the brand beside them");
+assert.match(styles, /\.mobile-site-header\s*{[\s\S]*?top:\s*max\(8px, env\(safe-area-inset-top\)\);[\s\S]*?width:\s*60px;/, "the mobile brand shares the top row with the time controls");
+assert.match(styles, /data-mobile-panel-target="configPanel"[\s\S]*?bottom:[\s\S]*?left:/, "Lab stays in the bottom-left mobile dock");
+assert.match(styles, /data-mobile-panel-target="palettePanel"[\s\S]*?bottom:[\s\S]*?left:/, "Theme stays beside Lab in the bottom-left mobile dock");
+assert.match(styles, /\.mobile-panel-menu button[\s\S]*?width:\s*44px;[\s\S]*?height:\s*44px;/, "mobile launchers use compact touch targets");
+assert.match(styles, /data-mobile-panel-target="toolsPanel"[\s\S]*?top:\s*calc\(50% - 102px\)[\s\S]*?right:/, "Tools stays above the bottom panel on the right");
+assert.match(styles, /data-mobile-panel-target="libraryPanel"[\s\S]*?top:\s*calc\(50% - 52px\)[\s\S]*?right:/, "Lifeforms finishes the compact right launcher");
+assert.match(styles, /width:\s*100vw;[\s\S]*?max-height:\s*50dvh;/, "mobile panels fill the width and use at most half the viewport height");
+assert.doesNotMatch(styles, /body\.mobile-panel-open \.mobile-panel-menu[\s\S]*?display:\s*none/, "mobile launcher buttons remain visible while a panel is open");
+assert.equal((html.match(/class="mobile-panel-close"/g) || []).length, 4, "every mobile panel has an X close button");
+assert.doesNotMatch(html, /mobile-panel-back/, "mobile panels no longer use Back buttons");
+assert.match(script, /if \(activeMobilePanel\(\) === panel\)[\s\S]*?closeMobilePanel\(\)/, "pressing an active launcher button closes its panel");
+assert.match(styles, /\.form-list,[\s\S]*?grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/, "the mobile catalog remains a grid");
+assert.match(styles, /\.placement-panel\s*\{[\s\S]*?bottom:\s*calc\(60px \+ env\(safe-area-inset-bottom\)\)/, "the mobile placement panel sits just above the bottom controls");
+assert.match(script, /addEventListener\("popstate"/, "phone Back returns from an open control panel");
+assert.match(script, /function updatePinchGesture\([\s\S]*?metrics\.distance \/ pinchState\.startDistance/, "two-finger pinch changes camera zoom");
 assert.match(script, /DEFAULT_RUNNING\s*=\s*true/, "the simulation starts playing");
 assert.match(script, /async function boot\([\s\S]*?setRunning\(DEFAULT_RUNNING\)/, "boot applies the playing default");
 for (const [key, action] of [

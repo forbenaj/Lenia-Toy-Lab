@@ -92,6 +92,9 @@ const ui = {
   confirmRuleChangeBtn: document.querySelector("#confirmRuleChangeBtn"),
   toast: document.querySelector("#toast"),
   fileProtocolNotice: document.querySelector("#fileProtocolNotice"),
+  mobilePanelButtons: [...document.querySelectorAll("[data-mobile-panel-target]")],
+  mobilePanelCloseButtons: [...document.querySelectorAll(".mobile-panel-close")],
+  mobilePanels: [...document.querySelectorAll(".mobile-control-panel")],
 };
 
 const ZIP_HEADER = "(zip)";
@@ -107,7 +110,12 @@ const SKIP_RULE_CHANGE_ALERT_KEY = "leniaToyLab.skipRuleChangeAlert.v1";
 const DEFAULT_MAP_PATH = "assets/maps/default_0.map";
 const DEFAULT_FORM_NAME = "Orbium unicaudatus";
 const DEFAULT_WORLD = { width: 196, height: 128 };
-const DEFAULT_FIT_ZOOM = 1.25;
+const PHONE_LAYOUT_MEDIA = window.matchMedia("(max-width: 719px)");
+const DEFAULT_VERTICAL_MARGIN = 24;
+const MIN_CAMERA_SCALE = 0.1;
+const MAX_CAMERA_SCALE = 24;
+const CAMERA_PAN_LIMIT_FIELDS = 4;
+const PREPARED_HANDLE_HIT_RADIUS = 18;
 const DEFAULT_RUNNING = true;
 const WORLD_LIMITS = { min: 32, max: 1024 };
 const CHANNEL_ID = "channel-0";
@@ -149,8 +157,8 @@ const DEFAULT_RULE = Object.freeze({
   positiveOnly: false,
 });
 
-let worldWidth = DEFAULT_WORLD.width;
-let worldHeight = DEFAULT_WORLD.height;
+let worldWidth = PHONE_LAYOUT_MEDIA.matches ? DEFAULT_WORLD.height : DEFAULT_WORLD.width;
+let worldHeight = PHONE_LAYOUT_MEDIA.matches ? DEFAULT_WORLD.width : DEFAULT_WORLD.height;
 let fieldBuffer = document.createElement("canvas");
 let fieldBufferCtx = fieldBuffer.getContext("2d", { alpha: false });
 let cssWidth = 1;
@@ -176,6 +184,9 @@ let preparedPlacements = [];
 let activePlacementIndex = -1;
 let currentTool = "form";
 let pointerState = null;
+const activeTouchPointers = new Map();
+let pinchState = null;
+let pinchGestureActive = false;
 let pointerHover = null;
 let fieldHasMass = false;
 let pendingRuleChange = null;
@@ -1155,15 +1166,32 @@ function resetLoadedWorld(width, height, values, loadedTime = 0) {
   return snapshot;
 }
 
-async function loadMapSource(source, { announce = true } = {}) {
+function rotateFieldClockwise(values, width, height) {
+  const rotated = new Float32Array(values.length);
+  const rotatedWidth = height;
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const rotatedX = height - 1 - y;
+      const rotatedY = x;
+      rotated[rotatedY * rotatedWidth + rotatedX] = values[y * width + x];
+    }
+  }
+  return rotated;
+}
+
+async function loadMapSource(source, { announce = true, orientForViewport = false } = {}) {
   if (!source) return false;
   try {
     const map = JSON.parse(await source.text());
     if (map.type && map.type !== window.LeniaMapFormat.TYPE) throw new Error(t("map.invalid"));
     if (Number(map.version || 1) > window.LeniaMapFormat.VERSION) throw new Error(t("map.newerVersion"));
-    const { width, height } = validateMapDimensions(map);
+    let { width, height } = validateMapDimensions(map);
     const layer = primaryMapLayer(map);
-    const values = window.LeniaMapFormat.decodeField(layer.field, width * height);
+    let values = window.LeniaMapFormat.decodeField(layer.field, width * height);
+    if (orientForViewport && PHONE_LAYOUT_MEDIA.matches && width > height) {
+      values = rotateFieldClockwise(values, width, height);
+      [width, height] = [height, width];
+    }
 
     currentRule = cloneRule({
       ...DEFAULT_RULE,
@@ -1203,7 +1231,10 @@ async function loadDefaultMap() {
   try {
     const response = await fetch(DEFAULT_MAP_PATH);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return loadMapSource({ name: DEFAULT_MAP_PATH, text: () => response.text() }, { announce: false });
+    return loadMapSource(
+      { name: DEFAULT_MAP_PATH, text: () => response.text() },
+      { announce: false, orientForViewport: true },
+    );
   } catch (error) {
     console.error(`Could not fetch default map ${DEFAULT_MAP_PATH}:`, error);
     return false;
@@ -1318,19 +1349,15 @@ function eventPoint(event) {
 function clampCamera() {
   const halfW = cssWidth / (2 * camera.scale);
   const halfH = cssHeight / (2 * camera.scale);
-  const margin = 80;
-  const minX = -margin + halfW;
-  const maxX = worldWidth + margin - halfW;
-  const minY = -margin + halfH;
-  const maxY = worldHeight + margin - halfH;
-  camera.x = minX > maxX ? worldWidth / 2 : clamp(camera.x, minX, maxX);
-  camera.y = minY > maxY ? worldHeight / 2 : clamp(camera.y, minY, maxY);
+  const horizontalLimit = worldWidth * CAMERA_PAN_LIMIT_FIELDS;
+  const verticalLimit = worldHeight * CAMERA_PAN_LIMIT_FIELDS;
+  camera.x = clamp(camera.x, -horizontalLimit - halfW, worldWidth + horizontalLimit + halfW);
+  camera.y = clamp(camera.y, -verticalLimit - halfH, worldHeight + verticalLimit + halfH);
 }
 
 function fitCamera() {
-  const availableWidth = Math.max(260, cssWidth - 700);
-  const availableHeight = Math.max(220, cssHeight - 130);
-  camera.scale = clamp(Math.min(availableWidth / worldWidth, availableHeight / worldHeight) * DEFAULT_FIT_ZOOM, 0.65, 12);
+  const availableHeight = Math.max(1, cssHeight - DEFAULT_VERTICAL_MARGIN);
+  camera.scale = clamp(availableHeight / worldHeight, 0.1, 12);
   camera.x = worldWidth / 2;
   camera.y = worldHeight / 2;
   clampCamera();
@@ -1603,14 +1630,14 @@ function sendCellPlacement(placement) {
 function addPreparedPlacement(world) {
   if (!selectedForm) {
     showToast(t("library.selectFirst"));
-    return;
+    return -1;
   }
-  prepareFormAt(selectedForm, world);
+  return prepareFormAt(selectedForm, world);
 }
 
 function prepareFormAt(form, world) {
-  if (!form) return;
-  commitPreparedPlacement({
+  if (!form) return -1;
+  return commitPreparedPlacement({
     form,
     ruleInfo: cloneRule(ruleForCatalogForm(form)),
     x: world.x,
@@ -1629,6 +1656,7 @@ function commitPreparedPlacement(placement) {
   activePlacementIndex = preparedPlacements.length - 1;
   updatePlacementPanel();
   requestRender();
+  return activePlacementIndex;
 }
 
 function ruleChangeAlertDisabled() {
@@ -1730,7 +1758,7 @@ function hitTestPlacement(point) {
     const geometry = placementCorners(placement);
     for (let cornerIndex = 0; cornerIndex < geometry.corners.length; cornerIndex += 1) {
       const corner = geometry.corners[cornerIndex];
-      if (Math.hypot(point.x - corner.x, point.y - corner.y) <= 11) {
+      if (Math.hypot(point.x - corner.x, point.y - corner.y) <= PREPARED_HANDLE_HIT_RADIUS) {
         const baseAngle = Math.atan2(corner.sy * geometry.halfH, corner.sx * geometry.halfW);
         return { kind: "rotate", index, baseAngle };
       }
@@ -1793,12 +1821,62 @@ function setTool(tool) {
   requestRender();
 }
 
+function currentPinchMetrics() {
+  const points = [...activeTouchPointers.values()];
+  if (points.length < 2) return null;
+  const [first, second] = points;
+  return {
+    center: { x: (first.x + second.x) / 2, y: (first.y + second.y) / 2 },
+    distance: Math.max(1, Math.hypot(second.x - first.x, second.y - first.y)),
+  };
+}
+
+function beginPinchGesture() {
+  const metrics = currentPinchMetrics();
+  if (!metrics) return;
+  if (pointerState?.createdPlacement) {
+    preparedPlacements.splice(pointerState.index, 1);
+    activePlacementIndex = Math.min(activePlacementIndex, preparedPlacements.length - 1);
+    updatePlacementPanel();
+  }
+  pointerState = null;
+  pinchGestureActive = true;
+  pinchState = {
+    startDistance: metrics.distance,
+    startScale: camera.scale,
+    anchorWorld: screenToWorld(metrics.center.x, metrics.center.y),
+  };
+  canvas.style.cursor = "grabbing";
+  requestRender();
+}
+
+function updatePinchGesture() {
+  const metrics = currentPinchMetrics();
+  if (!metrics || !pinchState) return;
+  camera.scale = clamp(
+    pinchState.startScale * (metrics.distance / pinchState.startDistance),
+    MIN_CAMERA_SCALE,
+    MAX_CAMERA_SCALE,
+  );
+  camera.x = pinchState.anchorWorld.x - (metrics.center.x - cssWidth / 2) / camera.scale;
+  camera.y = pinchState.anchorWorld.y - (metrics.center.y - cssHeight / 2) / camera.scale;
+  clampCamera();
+  requestRender();
+}
+
 function handlePointerDown(event) {
   const point = eventPoint(event);
   const world = screenToWorld(point.x, point.y);
   const wantsPan = event.button === 1 || event.button === 2 || event.shiftKey;
   event.preventDefault();
   canvas.setPointerCapture(event.pointerId);
+  if (event.pointerType === "touch") {
+    activeTouchPointers.set(event.pointerId, point);
+    if (activeTouchPointers.size >= 2) {
+      beginPinchGesture();
+      return;
+    }
+  }
   if (wantsPan) {
     pointerState = { kind: "pan", id: event.pointerId, x: point.x, y: point.y };
     canvas.style.cursor = "grabbing";
@@ -1822,19 +1900,29 @@ function handlePointerDown(event) {
       };
       canvas.style.cursor = "move";
     } else {
-      addPreparedPlacement(world);
-      pointerState = { kind: "select", id: event.pointerId };
+      const index = addPreparedPlacement(world);
+      pointerState = index < 0
+        ? { kind: "select", id: event.pointerId }
+        : { kind: "move", id: event.pointerId, index, offsetX: 0, offsetY: 0, createdPlacement: true };
+      if (index >= 0) canvas.style.cursor = "move";
     }
     requestRender();
     return;
   }
-  pointerState = { kind: "paint", id: event.pointerId };
-  paintAt(world);
+  pointerState = { kind: "paint", id: event.pointerId, hasPainted: event.pointerType !== "touch" };
+  if (event.pointerType !== "touch") paintAt(world);
 }
 
 function handlePointerMove(event) {
   const point = eventPoint(event);
   pointerHover = point;
+  if (event.pointerType === "touch" && activeTouchPointers.has(event.pointerId)) {
+    activeTouchPointers.set(event.pointerId, point);
+    if (pinchGestureActive) {
+      updatePinchGesture();
+      return;
+    }
+  }
   const world = screenToWorld(point.x, point.y);
   if (!pointerState || pointerState.id !== event.pointerId) {
     updatePlacementCursor(point);
@@ -1863,11 +1951,28 @@ function handlePointerMove(event) {
     requestRender();
   } else if (pointerState.kind === "paint") {
     paintAt(world);
+    pointerState.hasPainted = true;
   }
 }
 
 function handlePointerUp(event) {
+  if (event.pointerType === "touch") {
+    const wasPinching = pinchGestureActive;
+    activeTouchPointers.delete(event.pointerId);
+    if (wasPinching) {
+      if (activeTouchPointers.size < 2) pinchState = null;
+      if (activeTouchPointers.size === 0) pinchGestureActive = false;
+      pointerState = null;
+      if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+      setTool(currentTool);
+      return;
+    }
+  }
   if (pointerState?.id !== event.pointerId) return;
+  if (pointerState.kind === "paint" && !pointerState.hasPainted && event.type === "pointerup") {
+    const point = eventPoint(event);
+    paintAt(screenToWorld(point.x, point.y));
+  }
   pointerState = null;
   if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
   setTool(currentTool);
@@ -1890,7 +1995,7 @@ function handleWheel(event) {
   event.preventDefault();
   const point = eventPoint(event);
   const before = screenToWorld(point.x, point.y);
-  camera.scale = clamp(camera.scale * Math.exp(-event.deltaY * 0.001), 0.5, 24);
+  camera.scale = clamp(camera.scale * Math.exp(-event.deltaY * 0.001), MIN_CAMERA_SCALE, MAX_CAMERA_SCALE);
   const after = screenToWorld(point.x, point.y);
   camera.x += before.x - after.x;
   camera.y += before.y - after.y;
@@ -2394,7 +2499,58 @@ function refreshLocalizedUi() {
 
 window.addEventListener("lenia:languagechange", refreshLocalizedUi);
 
+function mobilePanelById(panelId) {
+  return ui.mobilePanels.find((panel) => panel.id === panelId) || null;
+}
+
+function activeMobilePanel() {
+  return ui.mobilePanels.find((panel) => !panel.classList.contains("mobile-collapsed")) || null;
+}
+
+function applyMobilePanelState(activePanel) {
+  for (const panel of ui.mobilePanels) panel.classList.toggle("mobile-collapsed", panel !== activePanel);
+  for (const button of ui.mobilePanelButtons) {
+    button.setAttribute("aria-expanded", String(button.dataset.mobilePanelTarget === activePanel?.id));
+  }
+  document.body.classList.toggle("mobile-panel-open", Boolean(activePanel));
+  if (activePanel) window.scrollTo({ top: 0, behavior: "auto" });
+}
+
+function openMobilePanel(panel) {
+  if (!PHONE_LAYOUT_MEDIA.matches || !panel) return;
+  if (activeMobilePanel() === panel) {
+    closeMobilePanel();
+    return;
+  }
+  applyMobilePanelState(panel);
+  const previousState = history.state && typeof history.state === "object" ? history.state : {};
+  const nextState = { ...previousState, leniaMobilePanel: panel.id };
+  if (previousState.leniaMobilePanel) history.replaceState(nextState, "");
+  else history.pushState(nextState, "");
+}
+
+function closeMobilePanel() {
+  if (!document.body.classList.contains("mobile-panel-open")) return;
+  applyMobilePanelState(null);
+  if (history.state?.leniaMobilePanel) history.back();
+}
+
 function bindEvents() {
+  for (const button of ui.mobilePanelButtons) {
+    button.addEventListener("click", () => openMobilePanel(mobilePanelById(button.dataset.mobilePanelTarget)));
+  }
+  for (const button of ui.mobilePanelCloseButtons) button.addEventListener("click", closeMobilePanel);
+  window.addEventListener("popstate", (event) => {
+    if (!PHONE_LAYOUT_MEDIA.matches) return;
+    applyMobilePanelState(mobilePanelById(event.state?.leniaMobilePanel));
+  });
+  if (PHONE_LAYOUT_MEDIA.matches) {
+    const initialState = history.state && typeof history.state === "object" ? { ...history.state } : {};
+    delete initialState.leniaMobilePanel;
+    history.replaceState(initialState, "");
+    applyMobilePanelState(null);
+  }
+
   ui.runBtn.addEventListener("click", () => setRunning(!isRunning));
   ui.stepBtn.addEventListener("click", () => queueSteps(1));
   ui.clearBtn.addEventListener("click", clearField);
@@ -2528,6 +2684,9 @@ function bindEvents() {
   window.addEventListener("resize", resizeCanvas);
   window.addEventListener("blur", () => {
     pointerState = null;
+    activeTouchPointers.clear();
+    pinchState = null;
+    pinchGestureActive = false;
   });
   window.addEventListener("keydown", (event) => {
     if (!ui.ruleChangeDialog.hidden) {
@@ -2614,6 +2773,8 @@ async function loadCatalog() {
 }
 
 async function boot() {
+  ui.fieldWidthInput.value = String(worldWidth);
+  ui.fieldHeightInput.value = String(worldHeight);
   makeBuffers();
   resizeCanvas();
   bindEvents();
