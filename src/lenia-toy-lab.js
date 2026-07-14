@@ -1384,6 +1384,10 @@ function placementCorners(placement) {
 }
 
 function drawPreparedPlacements() {
+  if (currentTool !== "form") {
+    updatePlacementWarnings();
+    return;
+  }
   preparedPlacements.forEach((placement, index) => {
     const geometry = placementCorners(placement);
     const crop = thumbnailCrop(placement.cellData);
@@ -1427,6 +1431,10 @@ function drawPreparedPlacements() {
 }
 
 function updatePlacementWarnings() {
+  if (currentTool !== "form") {
+    ui.placementWarnings.replaceChildren();
+    return;
+  }
   const mismatched = new Set();
   preparedPlacements.forEach((placement, index) => {
     if (placementMatchesCurrentRule(placement)) return;
@@ -1690,10 +1698,11 @@ function clearPreparedPlacements() {
 }
 
 function updatePlacementPanel() {
-  ui.placementPanel.hidden = preparedPlacements.length === 0;
+  const placementsVisible = currentTool === "form";
+  ui.placementPanel.hidden = !placementsVisible || preparedPlacements.length === 0;
   ui.placementCount.textContent = String(preparedPlacements.length);
   ui.placementSummaryLabel.textContent = tp("placements.summary", preparedPlacements.length);
-  if (!preparedPlacements.length) ui.activePlacementControls.hidden = true;
+  if (!placementsVisible || !preparedPlacements.length) ui.activePlacementControls.hidden = true;
   updatePlacementWarnings();
 }
 
@@ -1760,6 +1769,7 @@ function setTool(tool) {
   ui.toolFormSelection.hidden = tool !== "form";
   ui.brushSizeSlider.disabled = !brushActive;
   ui.brushPowerSlider.disabled = !brushActive;
+  updatePlacementPanel();
   if (brushActive) canvas.style.cursor = "none";
   else updatePlacementCursor();
   requestRender();

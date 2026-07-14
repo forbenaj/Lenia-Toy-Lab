@@ -216,6 +216,16 @@ assert.match(
 );
 assert.match(script, /ui\.brushControls\.hidden = !brushActive/, "brush controls are hidden outside the brush tools");
 assert.match(script, /ui\.toolFormSelection\.hidden = tool !== "form"/, "Form shows the selected lifeform details");
+assert.match(
+  script,
+  /function drawPreparedPlacements\(\) \{\s*if \(currentTool !== "form"\)/,
+  "prepared lifeforms are hidden on the canvas outside the Lifeform tool",
+);
+assert.match(
+  script,
+  /ui\.placementPanel\.hidden = !placementsVisible \|\| preparedPlacements\.length === 0/,
+  "prepared lifeform UI is hidden outside the Lifeform tool",
+);
 assert.match(script, /new Option\(t\("library\.all"\), "all"\)/, "the catalog includes a localized All option");
 assert.match(collections, /label:\s*"Strictly compatible"/, "the catalog declares Strictly compatible by reference");
 assert.match(script, /new Option\(t\("library\.favorites"/, "the catalog includes localized Favorites");
