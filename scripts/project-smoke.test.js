@@ -69,7 +69,7 @@ assert.match(html, /value="196"/, "field width defaults to 196");
 assert.match(html, /value="128"/, "field height defaults to 128");
 assert.match(html, /<option value="auto"[^>]*selected[^>]*>Auto<\/option>/, "backend defaults to Auto");
 assert.match(html, /id="repeatFieldToggle"[^>]*checked/, "field repetition defaults to on");
-assert.doesNotMatch(html, /id="showFieldBoundaryToggle"[^>]*checked/, "field boundary defaults to off");
+assert.match(html, /id="showFieldBoundaryToggle"[^>]*checked/, "field boundary defaults to on");
 assert.doesNotMatch(html, /Game mode|Clamp values|Wrap edges|Layers|role="tablist"/i, "removed controls stay out of the UI");
 
 for (const palette of ["Ambar", "Neon Green", "Neon Blue", "LCD Green", "LCD Green 2", "Heatmap", "Monochrome"]) {

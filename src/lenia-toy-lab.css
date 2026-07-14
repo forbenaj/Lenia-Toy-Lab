@@ -238,6 +238,25 @@ h3 {
   border-top: 1px solid var(--border);
 }
 
+.about-section {
+  padding-bottom: 0;
+}
+
+.about-section p {
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.about-section a {
+  color: var(--accent);
+  text-underline-offset: 2px;
+}
+
+.about-section a:hover {
+  color: var(--text);
+}
+
 .section-heading,
 .library-header,
 .library-summary,
