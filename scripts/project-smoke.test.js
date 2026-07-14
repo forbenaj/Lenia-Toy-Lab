@@ -11,6 +11,8 @@ const musicPlayer = fs.readFileSync(path.join(root, "src", "music-player.js"), "
 const styles = fs.readFileSync(path.join(root, "src", "lenia-toy-lab.css"), "utf8");
 const themes = fs.readFileSync(path.join(root, "src", "lenia-themes.js"), "utf8");
 const collections = fs.readFileSync(path.join(root, "src", "lifeform-collections.js"), "utf8");
+const albumDirectory = path.join(root, "assets", "music", "speaces", "el-orbe-unicolado");
+const albumManifest = JSON.parse(fs.readFileSync(path.join(albumDirectory, "tracks.json"), "utf8"));
 
 for (const id of [
   "speedSlider",
@@ -206,6 +208,11 @@ assert.match(html, /target="_blank"/, "album link opens in a new tab");
 assert.match(musicPlayer, /audio\.addEventListener\("ended"/, "the album advances when a song ends");
 assert.match(musicPlayer, /await audio\.play\(\)/, "the album attempts to autoplay");
 assert.match(musicPlayer, /tracks\.json/, "the album supports a static playlist manifest");
+assert.ok(Array.isArray(albumManifest.tracks) && albumManifest.tracks.length > 0, "the album manifest lists tracks");
+for (const track of albumManifest.tracks) {
+  assert.match(track, /\.mp3$/i, `album manifest entry is an MP3: ${track}`);
+  assert.ok(fs.existsSync(path.join(albumDirectory, track)), `album manifest track exists: ${track}`);
+}
 assert.match(musicPlayer, /loadTrack\(Math\.floor\(Math\.random\(\) \* tracks\.length\)\)/, "the album starts on a random song");
 assert.match(musicPlayer, /MUSIC_PREFERENCES_KEY/, "music playback preferences are persisted");
 assert.match(styles, /animation: music-marquee[^;]*linear infinite/, "song names continuously marquee from right to left");
